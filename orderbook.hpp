@@ -12,7 +12,10 @@ The price levels in bids are soted in decreasing
 order.
 ////////////////////////////////////////////////*/
 template <typename LevelsList>
-struct Bids {};
+struct Bids
+{
+    using levels = LevelsList;
+};
 
 
 /*////////////////////////////////////////////////
@@ -20,15 +23,12 @@ AddOrderToBids: Adds an ordeer to bids. It maintains
 sorted order of the levels based on price priority.
 ////////////////////////////////////////////////*/
 template <typename Bids, typename Order>
-struct AddOrderToBids;
-
-template <typename LevelsList, typename Order>
-struct AddOrderToBids<Bids<LevelsList>, Order>
+struct AddOrderToBids
 {
-    using list = AddOrderToListOfLevels_t<LevelsList, Order>;
+    using list = AddOrderToListOfLevels_t<typename Bids::levels, Order>;
     using sortedList = MergeSortListOfLevels_t<list, false>;
 
-    using type = Bids<sortedList>;
+    using type = ::Bids<sortedList>;
 };
 
 template <typename Bids, typename Order>
@@ -39,12 +39,9 @@ using AddOrderToBids_t = typename AddOrderToBids<Bids, Order>::type;
 RemoveOrderFromBids: Removes an order from the bids.
 ////////////////////////////////////////////////*/
 template<typename Bids, int OrderId>
-struct RemoveOrderFromBids;
-
-template<typename LevelsList, int OrderId>
-struct RemoveOrderFromBids<Bids<LevelsList>, OrderId>
+struct RemoveOrderFromBids
 {
-    using type = Bids<RemoveOrderFromListOfLevels_t<OrderId, LevelsList>>;
+    using type = ::Bids<RemoveOrderFromListOfLevels_t<OrderId, typename Bids::levels>>;
 };
 
 template<typename Bids, int OrderId>
@@ -58,7 +55,10 @@ The price levels in asks are sorted in increasing
 order.
 ////////////////////////////////////////////////*/
 template <typename LevelsList>
-struct Asks {};
+struct Asks
+{
+    using levels = LevelsList;
+};
 
 
 /*////////////////////////////////////////////////
@@ -66,15 +66,12 @@ AddOrderToAsk: Adds an ordeer to asks. It maintains
 sorted order of the levels based on price priority.
 ////////////////////////////////////////////////*/
 template <typename Asks, typename Order>
-struct AddOrderToAsks;
-
-template <typename LevelsList, typename Order>
-struct AddOrderToAsks<Asks<LevelsList>, Order>
+struct AddOrderToAsks
 {
-    using list = AddOrderToListOfLevels_t<LevelsList, Order>;
+    using list = AddOrderToListOfLevels_t<typename Asks::levels, Order>;
     using sortedList = MergeSortListOfLevels_t<list, true>;
 
-    using type = Asks<sortedList>;
+    using type = ::Asks<sortedList>;
 };
 
 template <typename Asks, typename Order>
@@ -85,13 +82,11 @@ using AddOrderToAsks_t = typename AddOrderToAsks<Asks, Order>::type;
 RemoveOrderFromAsks: Removes an order from the askss.
 ////////////////////////////////////////////////*/
 template<typename Asks, int OrderId>
-struct RemoveOrderFromAsks;
-
-template<typename LevelsList, int OrderId>
-struct RemoveOrderFromAsks<Asks<LevelsList>, OrderId>
+struct RemoveOrderFromAsks
 {
-    using type = Asks<RemoveOrderFromListOfLevels_t<OrderId, LevelsList>>;
+    using type = ::Asks<RemoveOrderFromListOfLevels_t<OrderId, typename Asks::levels>>;
 };
+
 
 template<typename Asks, int OrderId>
 using RemoveOrderFromAsks_t = typename RemoveOrderFromAsks<Asks, OrderId>::type;
@@ -159,11 +154,8 @@ behaves exactly like placing a new order.
 template<typename Orderbook, typename Order>
 struct ModifyOrder
 {
-    // Need to check both bids and asks because we don't know the order
-    // was on which side previously.
-    using b = RemoveOrderFromBids_t<typename Orderbook::bids, Order::orderId>;
-    using a = RemoveOrderFromAsks_t<typename Orderbook::asks, Order::orderId>;
-    using type = AddOrder_t<OrderBook<b, a>, Order>;
+    using book = CancelOrder_t<Orderbook, Order::orderId>;
+    using type = AddOrder_t<book, Order>;
 };
 
 template<typename Orderbook, typename Order>

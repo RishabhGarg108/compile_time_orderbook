@@ -23,13 +23,10 @@ AddOrderToLevel: Adds a new order to a level.
 This will add the order to the end of the queue.
 ////////////////////////////////////////////////*/
 template <typename Level, typename Order>
-struct AddOrderToLevel;
-
-template <int Price, typename Order, typename OrderQueue>
-struct AddOrderToLevel<Level<Price, OrderQueue>, Order>
+struct AddOrderToLevel
 {
-    using _newQueue = QueuePush_t<OrderQueue, Order>;
-    using type = Level<Price, _newQueue>;
+    using _newQueue = QueuePush_t<typename Level::orderQueue, Order>;
+    using type = ::Level<Level::price, _newQueue>;
 };
 
 template<typename Level, typename Order>
@@ -72,12 +69,9 @@ RemoveOrderFromLevel: Removes an order from a price
 level.
 ////////////////////////////////////////////////*/
 template<int OrderId, typename Level>
-struct RemoveOrderFromLevel;
-
-template<int OrderId, int Price, typename OrderQueue>
-struct  RemoveOrderFromLevel<OrderId, Level<Price, OrderQueue>>
+struct RemoveOrderFromLevel
 {
-    using type = Level<Price, RemoveOrderFromQueue_t<OrderId, OrderQueue>>;
+    using type = ::Level<Level::price, RemoveOrderFromQueue_t<OrderId, typename Level::orderQueue>>;
 };
 
 template<int OrderId, typename Level>
